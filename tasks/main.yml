@@ -1,2 +1,80 @@
 ---
-# tasks file for ansible-role-icon-daedric
+
+- name: Install required packages
+  apt:
+    name: "{{ packages }}"
+    force_apt_get: yes
+    state: present
+  vars:
+    packages:
+      - pkg-config
+      - python3-dev
+      - python3-pip
+      - python-pkg-resources
+      - jq
+      - libssl-dev
+      - build-essential
+      - automake
+      - libtool
+      - libffi-dev
+      - libgmp-dev
+      - libyaml-cpp-dev
+      - libsecp256k1-dev
+      - git
+
+- name: Install pip3 packages
+  pip:
+    name: asyncmock
+    executable: pip3
+    state: present
+
+- name: Install pip3 packages
+  pip:
+    name: "{{ pippkgs }}"
+    executable: pip3
+    state: present
+  vars:
+    pippkgs:
+      - tbears==1.6.0
+
+- name: check if daedric exists
+  stat:
+    path: /opt/daedric
+  register: daedric_git
+
+- name: clone daedric
+  git:
+    repo: "https://github.com/iconation/Daedric.git"
+    dest: /opt/daedric
+    version: 5f0dfe44508fc845822492c87537506351d08298
+  become: "yes"
+  when: not daedric_git.stat.exists
+
+- name: start tbears
+  command: ./start_tbears.sh
+  args:
+    chdir: /opt/daedric
+
+- name: install operator wallets
+  command: ./install.sh
+  args:
+    chdir: /opt/daedric
+
+- name: optional use main wallet - delete old keystore and create password file
+  command: |
+    rm /opt/daedric/config/{{ network_name }}/keystores/*
+    echo {{ keystore_password }} > /opt/daedric/config/{{ network_name }}/keystores/operator.password.txt
+  when: use_main_wallet
+
+- name: optional use main wallet - symlink main wallet
+  file:
+    src: "{{ keystore_path }}"
+    dest: /opt/daedric/config/{{ network_name }}/keystores/operator.icx
+    owner: root
+    group: root
+    state: link
+  when: use_main_wallet
+
+- name: optional deploy score
+  command: ./scripts/score/deploy_score.sh -n {{ network_name }} -t ICXUSD
+  when: deploy_score

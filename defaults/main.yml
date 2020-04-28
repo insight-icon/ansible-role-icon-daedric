@@ -1,2 +1,5 @@
 ---
 # defaults file for ansible-role-icon-daedric
+network_name: mainnet
+use_main_wallet: false
+deploy_score: false
