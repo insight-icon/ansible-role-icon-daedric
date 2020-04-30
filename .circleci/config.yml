@@ -10,5 +10,5 @@ version: 2.1
 workflows:
   default:
     jobs:
-      - test:
+      - test
   version: 2
