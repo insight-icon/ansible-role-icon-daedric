@@ -2,9 +2,9 @@
 galaxy_info:
   author: insight-icon
   description: Role to run Daedric price oracle
-  company: insight-icon
+  company: Insight Data Science
 
-  license: Apache 2.0
+  license: MIT
 
   min_ansible_version: 1.2
 
